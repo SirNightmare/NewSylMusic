@@ -9,8 +9,6 @@ const APIKEY = "AIzaSyChV72AqgUOWab694WT3zdK6EIbY0EGRuc"; // replace me
 const { YTSearcher } = require('ytsearcher');
 const ytsearcher = new YTSearcher(APIKEY);
 
-let prefix = "?";
-
 let queue = {};
 
 const commands =  {
