@@ -157,4 +157,4 @@ const commands =  {
 	}
 
 };
-client.login("MzcxNjYwODI1Nzc1MzA4ODEw.DiKb9g.Az9UYUkwsbqsVPvgxLXNEEgzO6Q");
+client.login(process.env.BOT_TOKEN);
