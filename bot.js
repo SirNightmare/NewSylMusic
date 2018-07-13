@@ -8,25 +8,14 @@ let bot = new Discord.Client();
 const APIKEY = "AIzaSyChV72AqgUOWab694WT3zdK6EIbY0EGRuc"; // replace me
 const { YTSearcher } = require('ytsearcher');
 const ytsearcher = new YTSearcher(APIKEY);
-const fs = require("fs");
+
+let prefix = "?";
 
 let queue = {};
 
-let prefix= "?";
-
-client.on('ready', () => {
-	console.log('ready!');
-});
-
-client.on('message', msg => {
-	if (!msg.content.startsWith(prefix)) return;
-	if (commands.hasOwnProperty(msg.content.toLowerCase().slice(prefix.length).split(' ')[0])) commands[msg.content.toLowerCase().slice(prefix.length).split(' ')[0]](msg);
-});
-
-
 const commands =  {
 	'play': (msg) => {
-		if (queue[msg.guild.id] === undefined) return msg.channel.sendMessage(`:musical_note: | **Add some songs to the queue first with ${prefix}add**`);
+		if (queue[msg.guild.id] === undefined) return msg.channel.sendMessage(`:musical_note: | **Add some songs to the queue first with ${tokens.prefix}add**`);
 		if (!msg.guild.voiceConnection) return commands.join(msg).then(() => commands.play(msg));
 		if (queue[msg.guild.id].playing) return msg.channel.sendMessage(`:musical_note: | **Already Playing**`);
 		let dispatcher;
@@ -47,16 +36,16 @@ const commands =  {
 			.setTitle(`Playing ${song.title}`)
 			.addField("Requested by:", song.requester)
 			.setTimestamp()
-			.setColor(0xffa0f5)
+			.setColor("RANDOM")
 			msg.channel.sendEmbed(Embed)
 			dispatcher = msg.guild.voiceConnection.playStream(yt(song.url, { audioonly: true }), { passes : tokens.passes });
 			let collector = msg.channel.createCollector(m => m);
 			collector.on('message', m => {
-				if (m.content.startsWith(prefix + 'pause')) {
+				if (m.content.startsWith(tokens.prefix + 'pause')) {
 					msg.channel.sendMessage(':pause_button: | **Paused**').then(() => {dispatcher.pause();});
-				} else if (m.content.startsWith(prefix + 'resume')){
+				} else if (m.content.startsWith(tokens.prefix + 'resume')){
 					msg.channel.sendMessage(':arrow_forward: | **Resumed**').then(() => {dispatcher.resume();});
-				} else if (m.content.startsWith(prefix + 'skip')){
+				} else if (m.content.startsWith(tokens.prefix + 'skip')){
 					msg.channel.sendMessage(':track_next: | **Skipped**').then(() => {dispatcher.end();});
 				} else if (m.content.startsWith('volume+')){
 					if (Math.round(dispatcher.volume*50) >= 100) return msg.channel.sendMessage(`Volume: ${Math.round(dispatcher.volume*50)}%`);
@@ -66,7 +55,7 @@ const commands =  {
 					if (Math.round(dispatcher.volume*50) <= 0) return msg.channel.sendMessage(`Volume: ${Math.round(dispatcher.volume*50)}%`);
 					dispatcher.setVolume(Math.max((dispatcher.volume*50 - (2*(m.content.split('-').length-1)))/50,0));
 					msg.channel.sendMessage(`Volume: ${Math.round(dispatcher.volume*50)}%`);
-				} else if (m.content.startsWith(prefix + 'time')){
+				} else if (m.content.startsWith(tokens.prefix + 'time')){
 					msg.channel.sendMessage(`Time: ${Math.floor(dispatcher.time / 60000)}:${Math.floor((dispatcher.time % 60000)/1000) <10 ? '0'+Math.floor((dispatcher.time % 60000)/1000) : Math.floor((dispatcher.time % 60000)/1000)}`);
 				}
 			});
@@ -83,6 +72,7 @@ const commands =  {
 		})(queue[msg.guild.id].songs.shift());
 	},
 	'join': (msg) => {
+		    
 		return new Promise((resolve, reject) => {
 			const voiceChannel = msg.member.voiceChannel;
 			if (!voiceChannel || voiceChannel.type !== 'voice') return msg.reply(':musical_note: | I couldn\'t connect to your voice channel...');
@@ -90,6 +80,7 @@ const commands =  {
 		});
 	},
 		'add': (msg) => {
+			    
 			let messsageArray = msg.content.split(" ");
 			let command = messsageArray[0];
 			let args = messsageArray.slice(1);
@@ -115,22 +106,25 @@ const commands =  {
 					.addField("By:", info.author.name)
 					.addField("Requested by:", msg.author.username)
 					.setThumbnail(info.thumbnail_url)
-					.setColor(0xffa0f5)
+					.setColor("RANDOM")
 					msg.channel.sendEmbed(Embed)
 				});
 			  });
 			});
 	},
 	'queue': (msg) => {
-		if (queue[msg.guild.id] === undefined) return msg.channel.sendMessage(`Add some songs to the queue first with ${prefix}add`);
+		   
+		if (queue[msg.guild.id] === undefined) return msg.channel.sendMessage(`Add some songs to the queue first with ${tokens.prefix}add`);
 		let tosend = [];
 		queue[msg.guild.id].songs.forEach((song, i) => { tosend.push(`${i+1}. ${song.title} - Requested by: ${song.requester}`);});
 		msg.channel.sendMessage(`__**${msg.guild.name}'s Music Queue:**__ Currently **${tosend.length}** songs queued ${(tosend.length > 15 ? '*[Only next 15 shown]*' : '')}\n\`\`\`${tosend.slice(0,15).join('\n')}\`\`\``);
 	},
 	'reboot': (msg) => {
+		   
 		if (msg.author.id == tokens.adminID) process.exit(); //Requires a node module like Forever to work.
 	},
 	'search': (msg) => {
+		  
 		let messsageArray = msg.content.split(" ");
 		let command = messsageArray[0];
 		let args = messsageArray.slice(1);
@@ -145,7 +139,7 @@ const commands =  {
 				queue[msg.guild.id].songs.push({url: result.url, title: info.title, requester: msg.author.username});
 				let embed = new Discord.RichEmbed()
 				.setAuthor(" | Searched", client.user.displayAvatarURL)
-				.setColor(0xffa0f5)
+				.setColor("RANDOM")
 				.setTimestamp()
 				.setImage(result.thumbnails.high.url)
 				.setTitle("Top Result | Added to the queue")
@@ -154,7 +148,17 @@ const commands =  {
 				msg.channel.sendEmbed(embed)
 			});
 		  });
-	}
+	},
+
 
 };
+
+client.on('ready', () => {
+	console.log('ready!');
+});
+
+client.on('message', msg => {
+	if (!msg.content.startsWith(tokens.prefix)) return;
+	if (commands.hasOwnProperty(msg.content.toLowerCase().slice(tokens.prefix.length).split(' ')[0])) commands[msg.content.toLowerCase().slice(tokens.prefix.length).split(' ')[0]](msg);
+});
 client.login(process.env.BOT_TOKEN);
